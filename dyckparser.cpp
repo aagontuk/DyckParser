@@ -120,21 +120,10 @@ int main (int argc, char *argv[]) {
     for (int i = 0; i < num_nodes; i++) {
         output[alloc[i]] = nchild[i]; 
     }
-    
+
     /* generate references to children */
-    int i = 0;
-    int k = 0;
-    while (i < output_length) {
-        /* find non empty cell */ 
-        if (output[i]) {
-            for (int j = 1; j <= output[i]; j++) {
-                output[i + j] = alloc[++k];
-            }
-            i += (output[i] + 1);
-        }
-        else {
-            i++; 
-        }
+    for (int i = 1; i < num_nodes; i++) {
+        output[parent[i] + i] = alloc[i];
     }
    
     std::cout << "Index: ";
