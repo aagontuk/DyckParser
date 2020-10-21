@@ -103,7 +103,7 @@ int main (int argc, char *argv[]) {
         }
     }
 
-    /* special case only for parent with highest depth 1 */
+    /* special case for tree with highest depth 1 */
     if (parent[parent.size() - 1] == 0) {
         nchild[0] = count[count.size() - 1]; 
     }
