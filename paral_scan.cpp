@@ -41,9 +41,9 @@ void blelloch_scan(std::vector<int> &v, int startIndex, int endIndex) {
     down_sweep(v, endIndex / 2, endIndex);
 }
 
-void seq_scan(std::vector<int> &v, int startIndex, int endIndex) {
-    int tmp = v[startIndex];
-    int tmp2;
+void seq_scan(std::vector<unsigned long long> &v, int startIndex, int endIndex) {
+    unsigned long long tmp = v[startIndex];
+    unsigned long long tmp2;
     v[startIndex] = 0;
 
     for (int i = startIndex + 1; i < endIndex; i++) {
@@ -53,20 +53,28 @@ void seq_scan(std::vector<int> &v, int startIndex, int endIndex) {
     }
 }
 
+void print_vector(std::vector<unsigned long long> &v) {
+    for (int i = 0; i < v.size(); i++) {
+        std::cout << v[i] << " "; 
+    }   
+    std::cout << "\n";
+}
+
 int main() {
-    std::vector<int> v;
-    std::vector<int> v2;
-    std::vector<int> tails;
-    std::vector<int> sums;
+    std::vector<unsigned long long> v;
+    std::vector<unsigned long long> v2;
+    std::vector<unsigned long> tails;
+    std::vector<unsigned long long> sums;
     std::vector<std::thread> threadPool;
     int startIndex, endIndex;
     int nproc = std::thread::hardware_concurrency();
+    int SIZE = 1024*1024;
 
-    for (int i = 1; i <= 1024*1024; i++) {
+    for (int i = 1; i <= SIZE; i++) {
         v2.push_back(i); 
     }
     
-    for (int i = 1; i <= 1024*1024; i++) {
+    for (int i = 1; i <= SIZE; i++) {
         v.push_back(i); 
     }
 
@@ -78,6 +86,7 @@ int main() {
     auto end = std::chrono::high_resolution_clock::now(); 
     double time_taken_seq = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
     std::cout << "Seq: " << time_taken_seq * 1e-9 << " sec\n";
+    //print_vector(std::ref(v2));
     
     start = std::chrono::high_resolution_clock::now();
     
@@ -113,6 +122,9 @@ int main() {
     double time_taken_par = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
     std::cout << "par: " << time_taken_par * 1e-9 << " sec\n";
     std::cout << "Speedup: " << ((time_taken_par/time_taken_seq) - 1) * 100 << "%\n";
+    //print_vector(std::ref(v));
+    std::cout << v2[SIZE-1] << "\n";
+    std::cout << v[SIZE-1] << "\n";
 
     return 0;
 }
