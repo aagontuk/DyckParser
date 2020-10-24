@@ -63,7 +63,7 @@ void print_vector(std::vector<unsigned long long> &v) {
 int main() {
     std::vector<unsigned long long> v;
     std::vector<unsigned long long> v2;
-    std::vector<unsigned long> tails;
+    std::vector<unsigned long long> tails;
     std::vector<unsigned long long> sums;
     std::vector<std::thread> threadPool;
     int startIndex, endIndex;
