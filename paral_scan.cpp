@@ -82,6 +82,10 @@ void par_scan(std::vector<unsigned long long> &v) {
 
     seq_scan(std::ref(sums), 0, sums.size());
 
+    for (int i = 0; i < nproc; i++) {
+        std::cout << "sum: " << sums[i] << "\ttail: " << tails[i] << "\n";
+    }
+
     for (int i = 1; i < nproc; i++) {
         startIndex = (i * (v.size() / nproc));
         endIndex = ((i + 1) * (v.size() / nproc));
@@ -101,7 +105,7 @@ void print_vector(std::vector<unsigned long long> &v) {
 int main() {
     std::vector<unsigned long long> v;
     std::vector<unsigned long long> v2;
-    int SIZE = 1024*1024;
+    int SIZE = 1024;
 
     for (int i = 1; i <= SIZE; i++) {
         v2.push_back(i); 
