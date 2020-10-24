@@ -53,42 +53,14 @@ void seq_scan(std::vector<unsigned long long> &v, int startIndex, int endIndex) 
     }
 }
 
-void print_vector(std::vector<unsigned long long> &v) {
-    for (int i = 0; i < v.size(); i++) {
-        std::cout << v[i] << " "; 
-    }   
-    std::cout << "\n";
-}
-
-int main() {
-    std::vector<unsigned long long> v;
-    std::vector<unsigned long long> v2;
+void par_scan(std::vector<unsigned long long> &v) {
     std::vector<unsigned long long> tails;
     std::vector<unsigned long long> sums;
     std::vector<std::thread> threadPool;
     int startIndex, endIndex;
     int nproc = std::thread::hardware_concurrency();
-    int SIZE = 1024*1024;
 
-    for (int i = 1; i <= SIZE; i++) {
-        v2.push_back(i); 
-    }
-    
-    for (int i = 1; i <= SIZE; i++) {
-        v.push_back(i); 
-    }
-
-    auto start = std::chrono::high_resolution_clock::now();
-
-    /* sequential */
-    seq_scan(std::ref(v2), 0, v2.size());
-
-    auto end = std::chrono::high_resolution_clock::now(); 
-    double time_taken_seq = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
-    std::cout << "Seq: " << time_taken_seq * 1e-9 << " sec\n";
-    //print_vector(std::ref(v2));
-    
-    start = std::chrono::high_resolution_clock::now();
+    std::cout << "Number of processors: " << nproc << "\n";
     
     for (int i = 0; i < nproc; i++) {
         startIndex = i * (v.size() / nproc); 
@@ -117,11 +89,47 @@ int main() {
             v[j] += sums[i]; 
         }
     }
+}
+
+void print_vector(std::vector<unsigned long long> &v) {
+    for (int i = 0; i < v.size(); i++) {
+        std::cout << v[i] << " "; 
+    }   
+    std::cout << "\n";
+}
+
+int main() {
+    std::vector<unsigned long long> v;
+    std::vector<unsigned long long> v2;
+    int SIZE = 1024*1024;
+
+    for (int i = 1; i <= SIZE; i++) {
+        v2.push_back(i); 
+    }
+    
+    for (int i = 1; i <= SIZE; i++) {
+        v.push_back(i); 
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    /* sequential */
+    seq_scan(std::ref(v2), 0, v2.size());
+
+    auto end = std::chrono::high_resolution_clock::now(); 
+    double time_taken_seq = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
+    std::cout << "Seq: " << time_taken_seq * 1e-9 << " sec\n";
+    //print_vector(std::ref(v2));
+    
+    start = std::chrono::high_resolution_clock::now();
+
+    /* parallel */
+    par_scan(std::ref(v));
     
     end = std::chrono::high_resolution_clock::now(); 
     double time_taken_par = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
     std::cout << "par: " << time_taken_par * 1e-9 << " sec\n";
-    std::cout << "Speedup: " << ((time_taken_par/time_taken_seq) - 1) * 100 << "%\n";
+    std::cout << "Speedup: " << time_taken_seq/time_taken_par << "X\n";
     //print_vector(std::ref(v));
     std::cout << v2[SIZE-1] << "\n";
     std::cout << v[SIZE-1] << "\n";
