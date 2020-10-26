@@ -5,24 +5,26 @@
 #include <cmath>
 #include <chrono>
 
-void reduce(std::vector<int> &v, int startIndex, int endIndex) {
+void print_vector(std::vector<unsigned long long> &v); 
+
+void reduce(std::vector<unsigned long long> &v, size_t startIndex, size_t endIndex) {
     int limit = std::log2(endIndex - startIndex);
     for (int i = 0; i < limit; i++) {
-        int x = pow(2, i + 1);
-        int y = pow(2, i);
-        for (int j = startIndex; j < endIndex; j += x) {
+        size_t x = pow(2, i + 1);
+        size_t y = pow(2, i);
+        for (size_t j = startIndex; j < endIndex; j += x) {
             v[j + x - 1] = v[j + x - 1] + v[j + y - 1]; 
         }
     }
 }
 
-void down_sweep(std::vector<int> &v, int startIndex, int endIndex) {
-    int limit = std::log2(endIndex - startIndex) - 1;
-    for (int i = limit; i >= 0; i--) {
-        int x = pow(2, i + 1);
-        int y = pow(2, i);
-        int tmp;
-        for (int j = startIndex; j < endIndex; j += x) {
+void down_sweep(std::vector<unsigned long long> &v, size_t startIndex, size_t endIndex) {
+    int limit = std::log2(endIndex - startIndex);
+    for (int i = limit - 1; i >= 0; i--) {
+        size_t x = pow(2, i + 1);
+        size_t y = pow(2, i);
+        unsigned long long tmp;
+        for (size_t j = startIndex; j < endIndex; j += x) {
             tmp = v[j + y - 1]; 
             v[j + y - 1] = v[j + x - 1];
             v[j + x - 1] = tmp + v[j + x - 1];
@@ -30,15 +32,10 @@ void down_sweep(std::vector<int> &v, int startIndex, int endIndex) {
     }
 }
 
-void blelloch_scan(std::vector<int> &v, int startIndex, int endIndex) {
-    reduce(v, startIndex, endIndex / 2);
-    reduce(v, endIndex / 2, endIndex);
-    
-    v[endIndex - 1] = v[(endIndex - 1) / 2];
-    v[(endIndex - 1) / 2] = 0;
-    
-    down_sweep(v, startIndex, endIndex / 2);
-    down_sweep(v, endIndex / 2, endIndex);
+void blelloch_scan(std::vector<unsigned long long> &v) {
+    reduce(v, 0, v.size());
+    v[v.size() - 1] = 0;
+    down_sweep(v, 0, v.size());
 }
 
 void seq_scan(std::vector<unsigned long long> &v, int startIndex, int endIndex) {
@@ -96,7 +93,7 @@ void par_scan(std::vector<unsigned long long> &v) {
 }
 
 void print_vector(std::vector<unsigned long long> &v) {
-    for (int i = 0; i < v.size(); i++) {
+    for (size_t i = 0; i < v.size(); i++) {
         std::cout << v[i] << " "; 
     }   
     std::cout << "\n";
@@ -105,38 +102,44 @@ void print_vector(std::vector<unsigned long long> &v) {
 int main() {
     std::vector<unsigned long long> v;
     std::vector<unsigned long long> v2;
-    int SIZE = 1024;
+    std::vector<unsigned long long> v3;
+    size_t SIZE = std::pow(2, 24);
 
-    for (int i = 1; i <= SIZE; i++) {
+    std::chrono::high_resolution_clock::time_point start;
+    std::chrono::high_resolution_clock::time_point end;
+
+    for (size_t i = 1; i <= SIZE; i++) {
         v2.push_back(i); 
     }
     
-    for (int i = 1; i <= SIZE; i++) {
+    for (size_t i = 1; i <= SIZE; i++) {
         v.push_back(i); 
     }
 
-    auto start = std::chrono::high_resolution_clock::now();
-
     /* sequential */
-    seq_scan(std::ref(v2), 0, v2.size());
-
-    auto end = std::chrono::high_resolution_clock::now(); 
-    double time_taken_seq = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
-    std::cout << "Seq: " << time_taken_seq * 1e-9 << " sec\n";
-    //print_vector(std::ref(v2));
-    
     start = std::chrono::high_resolution_clock::now();
+    seq_scan(std::ref(v2), 0, v2.size());
+    end = std::chrono::high_resolution_clock::now(); 
+    double time_taken_seq = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
+    std::cout << v2[v2.size() - 1] << "\n";
+    std::cout << "Sequential time: " << time_taken_seq * 1e-9 << " sec\n";
 
-    /* parallel */
-    par_scan(std::ref(v));
-    
+    start = std::chrono::high_resolution_clock::now();
+    blelloch_scan(std::ref(v));
     end = std::chrono::high_resolution_clock::now(); 
     double time_taken_par = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
-    std::cout << "par: " << time_taken_par * 1e-9 << " sec\n";
+    std::cout << v[v.size() - 1] << "\n";
+    std::cout << "Blelloch time: " << time_taken_par * 1e-9 << " sec\n";
+
+
+    /* parallel */
+    start = std::chrono::high_resolution_clock::now();
+    par_scan(std::ref(v));
+    end = std::chrono::high_resolution_clock::now(); 
+    time_taken_par = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count(); 
+    std::cout << v3[SIZE-1] << "\n";
+    std::cout << "Parallel time: " << time_taken_par * 1e-9 << " sec\n";
     std::cout << "Speedup: " << time_taken_seq/time_taken_par << "X\n";
-    //print_vector(std::ref(v));
-    std::cout << v2[SIZE-1] << "\n";
-    std::cout << v[SIZE-1] << "\n";
 
     return 0;
 }
